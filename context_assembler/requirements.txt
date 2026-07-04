@@ -1,0 +1,4 @@
+# Core algorithm has zero dependencies.
+# Only needed if using SupabaseBackend:
+supabase
+python-dotenv

@@ -1,0 +1,4 @@
+# Core — no dependencies beyond the standard library for memory backend
+
+# Optional — only required if using CACHE_BACKEND=redis
+# redis>=5.0

@@ -1,0 +1,4 @@
+# Core cache has zero dependencies (stdlib only: hashlib, json).
+# Only needed if using RedisBackend:
+redis
+python-dotenv

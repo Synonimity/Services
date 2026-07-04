@@ -1,0 +1,4 @@
+# Core tracker has zero dependencies (stdlib only).
+# Only needed if using SupabaseBackend:
+supabase
+python-dotenv

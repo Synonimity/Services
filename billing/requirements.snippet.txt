@@ -1,0 +1,2 @@
+# Add to your project's requirements.txt when using the billing module.
+httpx==0.27.2

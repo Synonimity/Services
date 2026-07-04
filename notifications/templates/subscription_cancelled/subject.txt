@@ -1,0 +1,1 @@
+Your {{ plan_name | default('subscription') }} has been cancelled

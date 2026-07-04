@@ -1,0 +1,13 @@
+{% extends "_layout.html" %}
+{% block content %}
+  <p style="margin-top:0;">Hi {{ name | default('there') }},</p>
+  <p>Your {{ plan_name | default('subscription') }} has been cancelled. You'll have access until {{ access_until | default('the end of your current billing period') }}.</p>
+  {% if resubscribe_url %}
+  <p style="text-align:center; margin: 28px 0;">
+    <a href="{{ resubscribe_url }}" style="background-color:{{ brand_color }}; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:600; display:inline-block;">
+      Resubscribe
+    </a>
+  </p>
+  {% endif %}
+  <p>Sorry to see you go - if there's anything we could have done better, just reply and let us know.</p>
+{% endblock %}

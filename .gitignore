@@ -1,0 +1,57 @@
+# Python bytecode and caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+**/.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+.hypothesis/
+
+# Test and local temp output
+.tmp/
+tmp/
+temp/
+pytest-cache-files-*/
+**/pytest-cache-files-*/
+
+# SynContain generated exports
+SynContain_Exports/
+_audit_exports/
+**/SynContain_Exports/
+**/_audit_exports/
+*.syncontain.json
+
+# Packaging and build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+
+# Coverage and reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+junit.xml
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE/editor clutter
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini

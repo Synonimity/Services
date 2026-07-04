@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+{% block content %}
+  <p style="margin-top:0;">Hi {{ name | default('there') }},</p>
+  <p>We tried to charge your card for your {{ plan_name | default('subscription') }} but the payment didn't go through.</p>
+  <p style="text-align:center; margin: 28px 0;">
+    <a href="{{ update_payment_url }}" style="background-color:{{ brand_color }}; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:600; display:inline-block;">
+      Update payment details
+    </a>
+  </p>
+  <p style="color:#71717a; font-size:13px;">If this isn't resolved soon, your subscription may be paused.</p>
+{% endblock %}

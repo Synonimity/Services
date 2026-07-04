@@ -1,0 +1,10 @@
+{% extends "_layout.html" %}
+{% block content %}
+  <p style="margin-top:0;">Hi {{ name | default('there') }},</p>
+  <p>Please confirm this is your email address to finish setting up your account.</p>
+  <p style="text-align:center; margin: 28px 0;">
+    <a href="{{ verify_url }}" style="background-color:{{ brand_color }}; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:600; display:inline-block;">
+      Verify email
+    </a>
+  </p>
+{% endblock %}

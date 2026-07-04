@@ -1,0 +1,13 @@
+{% extends "_layout.html" %}
+{% block content %}
+  <p style="margin-top:0;">Hi {{ name | default('there') }},</p>
+  <p>Your account is ready to go. We're glad to have you.</p>
+  {% if cta_url %}
+  <p style="text-align:center; margin: 28px 0;">
+    <a href="{{ cta_url }}" style="background-color:{{ brand_color }}; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:600; display:inline-block;">
+      {{ cta_label | default('Get started') }}
+    </a>
+  </p>
+  {% endif %}
+  <p>If you have any questions, just reply to this email.</p>
+{% endblock %}

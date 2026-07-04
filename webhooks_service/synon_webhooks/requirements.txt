@@ -1,0 +1,2 @@
+fastapi>=0.110
+supabase>=2.4

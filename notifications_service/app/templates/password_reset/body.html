@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+{% block content %}
+  <p style="margin-top:0;">Hi {{ name | default('there') }},</p>
+  <p>We received a request to reset your password. This link expires in {{ expires_in | default('30 minutes') }}.</p>
+  <p style="text-align:center; margin: 28px 0;">
+    <a href="{{ reset_url }}" style="background-color:{{ brand_color }}; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:6px; font-weight:600; display:inline-block;">
+      Reset password
+    </a>
+  </p>
+  <p style="color:#71717a; font-size:13px;">If you didn't request this, you can safely ignore this email - your password won't be changed.</p>
+{% endblock %}
