@@ -83,3 +83,21 @@ begin
     using p_product;
 end;
 $$;
+
+
+-- ---------------------------------------------------------------------
+-- Atomic trial run increment
+-- ---------------------------------------------------------------------
+
+create or replace function increment_trial_runs(
+    p_trial_id uuid
+)
+returns void
+language plpgsql
+as $$
+begin
+    update trial_usage
+    set run_count = run_count + 1
+    where id = p_trial_id;
+end;
+$$;
