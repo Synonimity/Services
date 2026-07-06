@@ -10,7 +10,8 @@ a SaaS app with an AI assistant bolted on.
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
-import os
+
+from .config import ContextAssemblerConfig
 
 
 class ContextBackend(ABC):
@@ -55,12 +56,11 @@ class InMemoryBackend(ContextBackend):
 
 class SupabaseBackend(ContextBackend):
     """
-    Requires the `supabase` package and SUPABASE_URL / SUPABASE_KEY env vars
-    (service role key recommended for server-side writes - see .env_example).
+    Requires the `supabase` package.
     Expects the tables defined in schema.sql.
     """
 
-    def __init__(self, url: Optional[str] = None, key: Optional[str] = None):
+    def __init__(self, config: ContextAssemblerConfig):
         try:
             from supabase import create_client
         except ImportError as e:
@@ -68,25 +68,24 @@ class SupabaseBackend(ContextBackend):
                 "SupabaseBackend requires the 'supabase' package: pip install supabase"
             ) from e
 
-        url = url or os.getenv("SUPABASE_URL")
-        key = key or os.getenv("SUPABASE_KEY")
-        if not url or not key:
-            raise ValueError("SUPABASE_URL and SUPABASE_KEY must be set to use SupabaseBackend.")
+        if not config.supabase_url or not config.supabase_key:
+            raise ValueError("supabase_url and supabase_key must be set in config to use SupabaseBackend.")
 
-        self.client = create_client(url, key)
+        self.client = create_client(config.supabase_url, config.supabase_key)
+        self.config = config
 
     def get_facts(self, user_id: str) -> Dict[str, str]:
-        res = self.client.table("context_facts").select("key,value").eq("user_id", user_id).execute()
+        res = self.client.table(self.config.context_facts_table).select("key,value").eq("user_id", user_id).execute()
         return {row["key"]: row["value"] for row in res.data}
 
     def set_fact(self, user_id: str, key: str, value: str) -> None:
-        self.client.table("context_facts").upsert({
+        self.client.table(self.config.context_facts_table).upsert({
             "user_id": user_id, "key": key, "value": value,
         }, on_conflict="user_id,key").execute()
 
     def get_history(self, session_id: str, limit: int = 20) -> List[Dict[str, str]]:
         res = (
-            self.client.table("context_history")
+            self.client.table(self.config.context_history_table)
             .select("role,content,created_at")
             .eq("session_id", session_id)
             .order("created_at", desc=True)
@@ -96,6 +95,6 @@ class SupabaseBackend(ContextBackend):
         return list(reversed([{"role": r["role"], "content": r["content"]} for r in res.data]))
 
     def append_history(self, session_id: str, role: str, content: str) -> None:
-        self.client.table("context_history").insert({
+        self.client.table(self.config.context_history_table).insert({
             "session_id": session_id, "role": role, "content": content,
         }).execute()
