@@ -17,21 +17,21 @@ from typing import Optional
 
 from supabase import Client, create_client
 
-from . import config
+from .config import SchedulerConfig
 from .models import JobStatus, RecurringJob, ScheduledJob
 
 
 class SchedulerStore:
-    def __init__(self, client: Optional[Client] = None):
+    def __init__(self, config: SchedulerConfig, client: Optional[Client] = None):
+        self.config = config
         if client is not None:
             self._client = client
         else:
-            config.validate_config()
             self._client = create_client(
-                config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY
+                config.supabase_url, config.supabase_service_role_key
             )
-        self._jobs_table = config.JOBS_TABLE
-        self._recurring_table = config.RECURRING_JOBS_TABLE
+        self._jobs_table = config.jobs_table
+        self._recurring_table = config.recurring_jobs_table
 
     # ------------------------------------------------------------------
     # One-off jobs
@@ -51,7 +51,7 @@ class SchedulerStore:
         worker ticks.
         """
         now = datetime.now(timezone.utc)
-        claim_stale_cutoff = now - timedelta(minutes=config.JOB_CLAIM_TIMEOUT_MINUTES)
+        claim_stale_cutoff = now - timedelta(minutes=self.config.job_claim_timeout_minutes)
 
         result = self._client.rpc(
             "claim_jobs",

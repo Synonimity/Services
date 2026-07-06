@@ -1,38 +1,19 @@
-"""
-synon_licensing.config
-
-ALL_CAPS_SNAKE constants pulled from environment. Same conventions as
-synon_webhooks and synon_scheduler — same Supabase project.
-"""
-
-import os
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# --- Supabase connection (reuse your existing project's creds) ---
-SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
-SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+class LicensingConfig(BaseSettings):
+    """
+    Configuration for the Licensing service.
+    """
+    supabase_url: str = Field(..., description="Supabase URL")
+    supabase_service_role_key: str = Field(..., description="Supabase Service Role Key")
 
-# --- Key generation ---
-# Format: XXXX-XXXX-XXXX-XXXX, uppercase alphanumeric, no ambiguous
-# chars (0/O, 1/I/L excluded) — matches the kind of key a customer
-# can read aloud or type without confusion.
-LICENSE_KEY_SEGMENT_LENGTH: int = int(os.getenv("LICENSE_KEY_SEGMENT_LENGTH", "4"))
-LICENSE_KEY_SEGMENT_COUNT: int = int(os.getenv("LICENSE_KEY_SEGMENT_COUNT", "4"))
+    license_key_segment_length: int = Field(4, description="Length of each key segment")
+    license_key_segment_count: int = Field(4, description="Number of segments in a key")
 
-# --- Table names (override if you namespace per-product) ---
-LICENSE_KEYS_TABLE: str = os.getenv("LICENSE_KEYS_TABLE", "license_keys")
-LICENSE_KEY_POOL_TABLE: str = os.getenv("LICENSE_KEY_POOL_TABLE", "license_key_pool")
-TRIAL_USAGE_TABLE: str = os.getenv("TRIAL_USAGE_TABLE", "trial_usage")
+    license_keys_table: str = Field("license_keys", description="Table for issued licenses")
+    license_key_pool_table: str = Field("license_key_pool", description="Table for pre-generated keys")
+    trial_usage_table: str = Field("trial_usage", description="Table for tracking trial usage")
 
-
-def validate_config() -> None:
-    """Call this on startup. Fails loudly instead of silently misbehaving."""
-    missing = []
-    if not SUPABASE_URL:
-        missing.append("SUPABASE_URL")
-    if not SUPABASE_SERVICE_ROLE_KEY:
-        missing.append("SUPABASE_SERVICE_ROLE_KEY")
-    if missing:
-        raise RuntimeError(
-            f"synon_licensing: missing required env vars: {', '.join(missing)}"
-        )
+    model_config = SettingsConfigDict(env_prefix="LICENSING_", extra="ignore")
