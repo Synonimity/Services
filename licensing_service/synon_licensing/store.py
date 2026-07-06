@@ -94,49 +94,44 @@ class LicensingStore:
         source: LicenseSource = LicenseSource.ON_DEMAND,
         customer_email: Optional[str] = None,
         bind_machine_id: Optional[str] = None,
+        max_attempts: int = 5,
     ) -> LicenseKey:
         """
         Issue a new license.
         """
-        if source == LicenseSource.POOL:
-            key_string = self._pull_from_pool(product)
-            if key_string is None:
-                raise RuntimeError(
-                    f"synon_licensing: pool for product '{product}' is empty"
-                )
-        else:
-            key_string = self._generate_unique_key()
-
-        license_key = LicenseKey(
-            key=key_string,
-            product=product,
-            source=source,
-            customer_email=customer_email,
-            bound_machine_id=bind_machine_id,
-        )
-        result = self._client.table(self._keys_table).insert(license_key.to_row()).execute()
-        license_key.id = result.data[0]["id"]
-        return license_key
-
-    def _generate_unique_key(self, max_attempts: int = 5) -> str:
-        """
-        Generates a key and attempts to insert it (implied by unique constraint).
-        Actually, since issue_license does the insert, this just generates
-        strings that aren't obviously in use, but the ultimate check is the
-        INSERT in issue_license. 
-        
-        To truly optimize, issue_license should loop.
-        """
         for _ in range(max_attempts):
-            candidate = generate_key_string(
-                self.config.license_key_segment_length,
-                self.config.license_key_segment_count
+            if source == LicenseSource.POOL:
+                key_string = self._pull_from_pool(product)
+                if key_string is None:
+                    raise RuntimeError(
+                        f"synon_licensing: pool for product '{product}' is empty"
+                    )
+            else:
+                key_string = generate_key_string(
+                    self.config.license_key_segment_length,
+                    self.config.license_key_segment_count
+                )
+
+            license_key = LicenseKey(
+                key=key_string,
+                product=product,
+                source=source,
+                customer_email=customer_email,
+                bound_machine_id=bind_machine_id,
             )
-            # In a template, we keep the simple check for now, but the
-            # recommendation was to catch the INSERT violation.
-            # Let's adjust issue_license to be the one that loops.
-            return candidate
-        raise RuntimeError("synon_licensing: failed to generate unique key")
+            try:
+                result = self._client.table(self._keys_table).insert(license_key.to_row()).execute()
+                license_key.id = result.data[0]["id"]
+                return license_key
+            except Exception:
+                if source == LicenseSource.POOL:
+                    # If pool claim succeeded but issuance failed (unlikely unique collision
+                    # with historical data), we effectively lost a pooled key.
+                    # This is rare enough to just raise or continue.
+                    raise
+                continue
+
+        raise RuntimeError("synon_licensing: failed to issue unique license after retries")
 
     # ------------------------------------------------------------------
     # Lookup / validation support
