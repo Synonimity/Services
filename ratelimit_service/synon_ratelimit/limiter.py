@@ -1,29 +1,8 @@
-"""
-synon_ratelimit.limiter
-
-The public interface. Wraps whichever RateLimitBackend is configured.
-
-    from synon_ratelimit import RateLimiter
-
-    limiter = RateLimiter()  # uses RATELIMIT_BACKEND env var
-
-    # Explicit check
-    result = limiter.check("user:42", capacity=10, window_seconds=60)
-    if not result.allowed:
-        ...  # reject, result.retry_after_seconds tells you how long to wait
-
-    # Decorator — for FastAPI routes or any callable, keyed on a
-    # function you provide that extracts the rate-limit key from the
-    # call's arguments (e.g. the user ID, IP address, license key)
-    @limiter.limit(capacity=5, window_seconds=60, key_func=lambda request: request.client.host)
-    def my_route(request): ...
-"""
-
 import time
 from dataclasses import dataclass
 from typing import Callable, Optional
 
-from . import config
+from .config import RateLimitConfig
 from .backends.base import RateLimitBackend
 from .backends.memory import MemoryBackend
 
@@ -37,13 +16,6 @@ class RateLimitResult:
 
 
 class RateLimitExceeded(Exception):
-    """
-    Raised by the decorator when a call is rejected. Catch this in
-    your FastAPI exception handler (or framework of choice) to return
-    a proper 429. Carries the same info as RateLimitResult so the
-    handler can set a Retry-After header.
-    """
-
     def __init__(self, result: RateLimitResult):
         self.result = result
         super().__init__(
@@ -52,25 +24,22 @@ class RateLimitExceeded(Exception):
         )
 
 
-class RateLimiter:
-    def __init__(self, backend: Optional[RateLimitBackend] = None, key_prefix: Optional[str] = None):
-        self._backend = backend or self._default_backend()
-        self._key_prefix = key_prefix if key_prefix is not None else config.RATELIMIT_KEY_PREFIX
+class RateLimitService:
+    def __init__(self, config: RateLimitConfig, backend: Optional[RateLimitBackend] = None):
+        self.config = config
+        self._backend = backend or self._init_backend()
+        self._key_prefix = config.key_prefix
 
-    @staticmethod
-    def _default_backend() -> RateLimitBackend:
-        if config.RATELIMIT_BACKEND == "redis":
+    def _init_backend(self) -> RateLimitBackend:
+        if self.config.backend == "redis":
             from .backends.redis_backend import RedisBackend
-
-            return RedisBackend(config.REDIS_URL)
+            if not self.config.redis_url:
+                raise ValueError("redis_url is required for redis backend")
+            return RedisBackend(self.config.redis_url)
         return MemoryBackend()
 
     def _namespaced(self, key: str) -> str:
         return f"{self._key_prefix}:{key}" if self._key_prefix else key
-
-    # ------------------------------------------------------------------
-    # Explicit check
-    # ------------------------------------------------------------------
 
     def check(
         self,
@@ -79,22 +48,8 @@ class RateLimiter:
         window_seconds: Optional[int] = None,
         cost: int = 1,
     ) -> RateLimitResult:
-        """
-        Check (and consume, if allowed) against the bucket for `key`.
-
-        Args:
-            key: identifies WHO/WHAT is being limited — e.g.
-                 "user:42", "ip:1.2.3.4", "license:K7XJ-..."
-            capacity: max tokens in the bucket (defaults to
-                      RATELIMIT_DEFAULT_CAPACITY)
-            window_seconds: time for a full refill (defaults to
-                            RATELIMIT_DEFAULT_WINDOW_SECONDS)
-            cost: tokens this specific call consumes — use >1 for
-                  operations you want to weight as "more expensive"
-                  than a normal request
-        """
-        capacity = capacity if capacity is not None else config.RATELIMIT_DEFAULT_CAPACITY
-        window_seconds = window_seconds if window_seconds is not None else config.RATELIMIT_DEFAULT_WINDOW_SECONDS
+        capacity = capacity if capacity is not None else self.config.default_capacity
+        window_seconds = window_seconds if window_seconds is not None else self.config.default_window_seconds
 
         namespaced_key = self._namespaced(key)
         allowed, remaining, retry_after = self._backend.consume(
@@ -117,10 +72,6 @@ class RateLimiter:
     def clear(self) -> None:
         self._backend.clear()
 
-    # ------------------------------------------------------------------
-    # Decorator
-    # ------------------------------------------------------------------
-
     def limit(
         self,
         key_func: Callable[..., str],
@@ -128,22 +79,6 @@ class RateLimiter:
         window_seconds: Optional[int] = None,
         cost: int = 1,
     ):
-        """
-        Decorator: checks the rate limit before calling the wrapped
-        function, raising RateLimitExceeded if over the limit.
-
-        `key_func` receives the SAME arguments the wrapped function
-        is called with, and must return a string identifying who/what
-        to rate-limit. This is deliberately explicit rather than
-        guessing — your function's arguments could be a FastAPI
-        Request, a user ID, a license key, anything; you decide which
-        argument identifies the caller.
-
-            @limiter.limit(key_func=lambda request: f"ip:{request.client.host}", capacity=20, window_seconds=60)
-            def handle_request(request):
-                ...
-        """
-
         def decorator(func: Callable) -> Callable:
             def wrapper(*args, **kwargs):
                 key = key_func(*args, **kwargs)
@@ -151,7 +86,5 @@ class RateLimiter:
                 if not result.allowed:
                     raise RateLimitExceeded(result)
                 return func(*args, **kwargs)
-
             return wrapper
-
         return decorator

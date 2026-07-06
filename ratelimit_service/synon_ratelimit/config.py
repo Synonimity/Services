@@ -1,25 +1,17 @@
-"""
-synon_ratelimit.config
+from typing import Literal, Optional
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ALL_CAPS_SNAKE constants pulled from environment. Mirrors
-synon_cache's backend-selection pattern.
-"""
 
-import os
+class RateLimitConfig(BaseSettings):
+    """
+    Configuration for Rate Limiting.
+    """
+    backend: Literal["memory", "redis"] = Field("memory", description="Backend to use")
+    redis_url: Optional[str] = Field(None, description="Redis URL if using redis backend")
+    
+    default_capacity: int = Field(10, description="Default token bucket capacity")
+    default_window_seconds: int = Field(60, description="Default refill window")
+    key_prefix: str = Field("synon_rl", description="Prefix for all keys in backend")
 
-# "memory" (default, zero infra, per-process) or "redis" (shared
-# across workers/instances). Same tradeoffs as synon_cache — memory
-# is fine for a single-process app, Redis is needed once a product
-# runs multiple workers and the limit needs to be enforced GLOBALLY
-# rather than per-worker.
-RATELIMIT_BACKEND: str = os.getenv("RATELIMIT_BACKEND", "memory")
-
-REDIS_URL: str = os.getenv("REDIS_URL", "")
-
-# Default bucket settings applied when a call site doesn't specify
-# its own. "10 requests per 60 seconds" is a reasonable generic
-# default — override per-route/per-key as needed.
-RATELIMIT_DEFAULT_CAPACITY: int = int(os.getenv("RATELIMIT_DEFAULT_CAPACITY", "10"))
-RATELIMIT_DEFAULT_WINDOW_SECONDS: int = int(os.getenv("RATELIMIT_DEFAULT_WINDOW_SECONDS", "60"))
-
-RATELIMIT_KEY_PREFIX: str = os.getenv("RATELIMIT_KEY_PREFIX", "synon_rl")
+    model_config = SettingsConfigDict(env_prefix="RATELIMIT_", extra="ignore")

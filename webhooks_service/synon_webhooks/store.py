@@ -15,20 +15,20 @@ from typing import Optional
 
 from supabase import Client, create_client
 
-from . import config
+from .config import WebhooksConfig
 from .models import WebhookEvent, WebhookStatus
 
 
 class WebhookStore:
-    def __init__(self, client: Optional[Client] = None):
+    def __init__(self, config: WebhooksConfig, client: Optional[Client] = None):
+        self.config = config
         if client is not None:
             self._client = client
         else:
-            config.validate_config()
             self._client = create_client(
-                config.SUPABASE_URL, config.SUPABASE_SERVICE_ROLE_KEY
+                config.supabase_url, config.supabase_service_role_key
             )
-        self._table = config.WEBHOOK_EVENTS_TABLE
+        self._table = config.events_table
 
     # ------------------------------------------------------------------
     # Idempotency
@@ -37,11 +37,10 @@ class WebhookStore:
     def already_processed(self, provider: str, idempotency_key: str) -> bool:
         """
         True if this exact event has already succeeded within the
-        idempotency window. Lets a provider safely retry delivery
-        without double-processing on your end.
+        idempotency window.
         """
         cutoff = datetime.now(timezone.utc) - timedelta(
-            hours=config.WEBHOOK_IDEMPOTENCY_WINDOW_HOURS
+            hours=self.config.idempotency_window_hours
         )
         result = (
             self._client.table(self._table)

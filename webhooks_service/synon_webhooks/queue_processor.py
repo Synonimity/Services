@@ -12,7 +12,6 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Callable
 
-from . import config
 from .models import WebhookEvent
 from .store import WebhookStore
 
@@ -24,13 +23,12 @@ logger = logging.getLogger("synon_webhooks")
 EventHandler = Callable[[WebhookEvent], None]
 
 
-def compute_backoff_seconds(attempt_count: int) -> int:
+def compute_backoff_seconds(attempt_count: int, config) -> int:
     """
     Exponential backoff: base * 2^attempt, capped at max.
-    attempt_count=0 -> base, 1 -> base*2, 2 -> base*4, etc.
     """
-    backoff = config.WEBHOOK_BASE_BACKOFF_SECONDS * (2**attempt_count)
-    return min(backoff, config.WEBHOOK_MAX_BACKOFF_SECONDS)
+    backoff = config.base_backoff_seconds * (2**attempt_count)
+    return min(backoff, config.max_backoff_seconds)
 
 
 def process_due_events(
@@ -39,11 +37,7 @@ def process_due_events(
     limit: int = 50,
 ) -> dict[str, int]:
     """
-    Process all due events. `handlers` maps provider name -> handler
-    function, so one queue can serve multiple providers cleanly.
-
-    Returns a small summary dict, useful for logging/monitoring:
-    {"processed": N, "succeeded": N, "failed": N, "skipped": N}
+    Process all due events.
     """
     summary = {"processed": 0, "succeeded": 0, "failed": 0, "skipped": 0}
 
@@ -67,8 +61,8 @@ def process_due_events(
             handler(event)
             store.mark_succeeded(event)
             summary["succeeded"] += 1
-        except Exception as exc:  # noqa: BLE001 — webhook handlers are arbitrary, must not crash the loop
-            backoff_seconds = compute_backoff_seconds(event.attempt_count)
+        except Exception as exc:  # noqa: BLE001
+            backoff_seconds = compute_backoff_seconds(event.attempt_count, store.config)
             next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=backoff_seconds)
 
             logger.error(

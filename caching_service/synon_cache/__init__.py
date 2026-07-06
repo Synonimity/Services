@@ -1,4 +1,7 @@
-from .cache import Cache
-from .backends import CacheBackend, MemoryBackend, RedisBackend
+from .config import CacheConfig
+from .cache import CacheService
 
-__all__ = ["Cache", "CacheBackend", "MemoryBackend", "RedisBackend"]
+__all__ = [
+    "CacheConfig",
+    "CacheService",
+]

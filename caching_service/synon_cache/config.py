@@ -1,23 +1,15 @@
-"""
-synon_cache.config
+from typing import Literal, Optional
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ALL_CAPS_SNAKE constants pulled from environment.
-"""
 
-import os
+class CacheConfig(BaseSettings):
+    """
+    Configuration for Caching.
+    """
+    backend: Literal["memory", "redis"] = Field("memory", description="Backend to use")
+    default_ttl_seconds: int = Field(300, description="Default TTL")
+    redis_url: Optional[str] = Field(None, description="Redis URL if using redis")
+    key_prefix: str = Field("synon", description="Prefix for all keys")
 
-# Which backend to use by default when Cache() is constructed with no
-# explicit backend argument. "memory" requires zero infra. "redis"
-# requires REDIS_URL to be set and the redis package installed.
-CACHE_BACKEND: str = os.getenv("CACHE_BACKEND", "memory")
-
-# Default TTL (seconds) applied when a call site doesn't specify one.
-CACHE_DEFAULT_TTL_SECONDS: int = int(os.getenv("CACHE_DEFAULT_TTL_SECONDS", "300"))
-
-# Redis connection (only needed if CACHE_BACKEND=redis)
-REDIS_URL: str = os.getenv("REDIS_URL", "")
-
-# Prefix applied to every key this module writes — keeps your cache
-# namespaced if Redis/the cache is shared across multiple products
-# or services hitting the same instance.
-CACHE_KEY_PREFIX: str = os.getenv("CACHE_KEY_PREFIX", "synon")
+    model_config = SettingsConfigDict(env_prefix="CACHE_", extra="ignore")

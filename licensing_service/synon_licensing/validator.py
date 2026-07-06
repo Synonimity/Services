@@ -97,7 +97,7 @@ def validate_license(
                 trial_usage=trial,
             )
         if consume_run:
-            store.increment_run_count(trial)
+            store.increment_run_count(trial.id)
 
     return ValidationOutcome(
         result=LicenseCheckResult.VALID, license_key=license_key, trial_usage=trial

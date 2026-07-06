@@ -12,27 +12,17 @@ by lookalike characters.
 
 import secrets
 
-from . import config
-
-# Excludes: 0, O, 1, I, L — and lowercase entirely (keys are generated
-# uppercase; if you display/accept lowercase input, normalize with
-# .upper() before comparing, don't add lowercase to this alphabet)
+# Excludes: 0, O, 1, I, L
 _ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 
 
 def generate_key_string(
-    segment_count: int = None,
-    segment_length: int = None,
+    segment_length: int = 4,
+    segment_count: int = 4,
 ) -> str:
     """
     Generates a single key string, e.g. "K7XJ-2MNP-9QRT-VWYZ".
-    Does NOT check uniqueness against the database — that's the
-    caller's job (retry on unique-constraint violation, or check
-    before insert).
     """
-    segment_count = segment_count or config.LICENSE_KEY_SEGMENT_COUNT
-    segment_length = segment_length or config.LICENSE_KEY_SEGMENT_LENGTH
-
     segments = [
         "".join(secrets.choice(_ALPHABET) for _ in range(segment_length))
         for _ in range(segment_count)

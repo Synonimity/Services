@@ -22,17 +22,17 @@ Everything else in this library — including Auth, despite originally being bui
 | Service | Pattern | Status |
 |---|---|---|
 | Auth & login | Copy-in (default) | Built as standalone service; **retrofit to copy-in is the next piece of work** |
-| Billing | Copy-in (default) | **Built (Copy-in)** |
-| Notifications | Copy-in (default) | **Built (Copy-in)** |
-| Webhooks | Copy-in (default) | **Built (Copy-in)** |
-| Licensing / Entitlements | Copy-in (default) | **Built (Copy-in)** |
-| Background Jobs / Task Queue | Copy-in (default) | **Built (Copy-in)** |
-| Caching | Copy-in (default) | **Built (Copy-in)** |
-| Rate Limiting | Copy-in (default) | **Built (Copy-in)** |
-| LLM Caller | Copy-in (default) | **Built (Copy-in)** |
-| LLM Guard | Copy-in (default) | **Built (Copy-in)** |
-| Context Assembler | Copy-in (default) | **Built (Copy-in)** |
-| Usage Tracker | Copy-in (default) | **Built (Copy-in)** |
+| Billing | Copy-in (default) | **Standardized (Copy-in)** |
+| Notifications | Copy-in (default) | **Standardized (Copy-in)** |
+| Webhooks | Copy-in (default) | **Standardized (Copy-in)** |
+| Licensing / Entitlements | Copy-in (default) | **Standardized (Copy-in)** |
+| Background Jobs / Task Queue | Copy-in (default) | **Standardized (Copy-in)** |
+| Caching | Copy-in (default) | **Standardized (Copy-in)** |
+| Rate Limiting | Copy-in (default) | **Standardized (Copy-in)** |
+| LLM Caller | Copy-in (default) | **Standardized (Copy-in)** |
+| LLM Guard | Copy-in (default) | **Standardized (Copy-in)** |
+| Context Assembler | Copy-in (default) | **Standardized (Copy-in)** |
+| Usage Tracker | Copy-in (default) | **Standardized (Copy-in)** |
 | Error handling & logging | Centralized (named exception) | Built correctly as a standalone service — no change needed |
 | Env handling | Centralized (named exception) | Built correctly as a standalone service — no change needed |
 

@@ -1,23 +1,20 @@
-from .models import (
-    LicenseCheckResult,
-    LicenseKey,
-    LicenseSource,
-    LicenseStatus,
-    TrialUsage,
-)
+from .config import LicensingConfig
+from .models import LicenseKey, TrialUsage, LicenseSource, LicenseStatus, LicenseCheckResult
 from .store import LicensingStore
+from .service import LicensingService
 from .validator import validate_license, ValidationOutcome
-from .keygen import generate_key_string, normalize_key_input
+from .keygen import normalize_key_input
 
 __all__ = [
-    "LicenseCheckResult",
+    "LicensingConfig",
     "LicenseKey",
+    "TrialUsage",
     "LicenseSource",
     "LicenseStatus",
-    "TrialUsage",
+    "LicenseCheckResult",
     "LicensingStore",
+    "LicensingService",
     "validate_license",
     "ValidationOutcome",
-    "generate_key_string",
     "normalize_key_input",
 ]

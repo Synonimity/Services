@@ -1,11 +1,9 @@
-from .limiter import RateLimiter, RateLimitResult, RateLimitExceeded
-from .backends import RateLimitBackend, MemoryBackend, RedisBackend
+from .config import RateLimitConfig
+from .limiter import RateLimitService, RateLimitResult, RateLimitExceeded
 
 __all__ = [
-    "RateLimiter",
+    "RateLimitConfig",
+    "RateLimitService",
     "RateLimitResult",
     "RateLimitExceeded",
-    "RateLimitBackend",
-    "MemoryBackend",
-    "RedisBackend",
 ]

@@ -1,0 +1,9 @@
+# Core — always required
+fastapi>=0.110.0
+pydantic>=2.0.0
+
+# Optional — only needed if you wire up the corresponding checks.
+# Not imported by synon_health itself, so omit whichever you don't use.
+
+# supabase>=2.0.0        # for make_supabase_check (you likely already have this)
+# redis>=5.0.0            # for make_redis_check, async client (redis.asyncio)

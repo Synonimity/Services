@@ -1,17 +1,19 @@
+from .config import WebhooksConfig
 from .models import WebhookEvent, WebhookStatus
 from .store import WebhookStore
+from .service import WebhookService
 from .router import build_webhook_router
-from .queue_processor import process_due_events, compute_backoff_seconds
-from .verifiers import BaseVerifier, GenericHmacVerifier, VerificationError
+from .verifiers.base import BaseVerifier, VerificationError
+from .verifiers.hmac_generic import GenericHmacVerifier
 
 __all__ = [
+    "WebhooksConfig",
     "WebhookEvent",
     "WebhookStatus",
     "WebhookStore",
+    "WebhookService",
     "build_webhook_router",
-    "process_due_events",
-    "compute_backoff_seconds",
     "BaseVerifier",
-    "GenericHmacVerifier",
     "VerificationError",
+    "GenericHmacVerifier",
 ]
